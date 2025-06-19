@@ -1,0 +1,21 @@
+{
+  "receiver": "devops-team",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubePodCrashLooping",
+        "namespace": "default",
+        "pod": "web-app-1234",
+        "severity": "warning"
+      },
+      "annotations": {
+        "summary": "Pod web-app-1234 is crashing",
+        "description": "Pod web-app-1234 in namespace default is in CrashLoopBackOff state for more than 10 minutes."
+      },
+      "startsAt": "2025-06-19T02:22:00Z",
+      "generatorURL": "http://prometheus.example.com/graph?g0.expr=..."
+    }
+  ]
+}
