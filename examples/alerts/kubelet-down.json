@@ -1,0 +1,20 @@
+{
+  "receiver": "infra-monitoring",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubeletDown",
+        "instance": "192.168.1.10:10250",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "Kubelet on node 192.168.1.10 is down",
+        "description": "Prometheus failed to scrape kubelet on 192.168.1.10 for the past 5 minutes."
+      },
+      "startsAt": "2025-06-19T03:00:00Z",
+      "generatorURL": "http://prometheus.example.com/graph?g0.expr=..."
+    }
+  ]
+}

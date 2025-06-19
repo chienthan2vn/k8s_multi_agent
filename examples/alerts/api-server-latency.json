@@ -1,0 +1,20 @@
+{
+  "receiver": "platform-alerts",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubeAPILatencyHigh",
+        "severity": "warning",
+        "job": "apiserver"
+      },
+      "annotations": {
+        "summary": "High latency for Kubernetes API server",
+        "description": "The 99th percentile latency for Kubernetes API server is over 1s for the last 5 minutes."
+      },
+      "startsAt": "2025-06-19T04:00:00Z",
+      "generatorURL": "http://prometheus.example.com/graph?g0.expr=..."
+    }
+  ]
+}

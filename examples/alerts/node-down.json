@@ -1,0 +1,20 @@
+{
+  "receiver": "team-X-pager",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubeNodeNotReady",
+        "node": "worker-node-1",
+        "severity": "critical"
+      },
+      "annotations": {
+        "summary": "Node worker-node-1 is not ready",
+        "description": "Kubernetes node worker-node-1 has been unready for more than 5 minutes."
+      },
+      "startsAt": "2025-06-19T01:10:00Z",
+      "generatorURL": "http://prometheus.example.com/graph?g0.expr=..."
+    }
+  ]
+}
