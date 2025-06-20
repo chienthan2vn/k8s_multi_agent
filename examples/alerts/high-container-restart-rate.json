@@ -1,0 +1,21 @@
+{
+  "receiver": "sre-team",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "KubeContainerRestartRateHigh",
+        "container": "backend-service",
+        "namespace": "production",
+        "severity": "warning"
+      },
+      "annotations": {
+        "summary": "High restart rate for container backend-service",
+        "description": "Container backend-service in namespace production is restarting more than 5 times in the last 5 minutes."
+      },
+      "startsAt": "2025-06-19T03:30:00Z",
+      "generatorURL": "http://prometheus.example.com/graph?g0.expr=..."
+    }
+  ]
+}
