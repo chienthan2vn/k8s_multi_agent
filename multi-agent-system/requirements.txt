@@ -1,9 +1,0 @@
-langgraph==0.2.67
-langchain
-langchain-community
-langchain-core
-langchain-tavily
-google-generativeai
-pydantic
-typing-extensions
-langchain-google-genai
