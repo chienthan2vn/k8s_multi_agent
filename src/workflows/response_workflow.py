@@ -12,168 +12,112 @@ Quy trình làm việc của Đội:
 
 import os
 import sys
-from typing import Dict, Any, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.graph.state import CompiledStateGraph
 
-from src.agents.analyst import run_analyst
-from src.agents.planner import run_planner
-from src.agents.executor import run_executor
-from src.agents.orchestrator import create_incident_report, run_orchestrator_summary
+from langgraph_supervisor import create_supervisor
 
-class WorkflowState:
-    """State object cho workflow"""
-    def __init__(self):
-        self.alert_data: Dict[str, Any] = {}
-        self.analysis_result: Dict[str, Any] = {}
-        self.plan_suggestions: Dict[str, Any] = {}
-        self.execution_result: Dict[str, Any] = {}
-        self.final_report: Dict[str, Any] = {}
-        self.current_step: str = "received"
-        self.user_approval: bool = False
+from src.agents.analyst import create_analyst_agent
+from src.agents.planner import create_planner_agent
+from src.agents.executor import create_executor_agent
+from src.llms.gemini import gemini_client
+from src.prompts.prompt_supervisor import SUPERVISOR_SYSTEM_PROMPT
 
-def analyze_incident(state: WorkflowState) -> WorkflowState:
-    """Bước 1: Chẩn đoán sự cố bằng Analyst agent"""
-    print("🔍 Bắt đầu chẩn đoán sự cố...")
-    
-    analysis_result = run_analyst(state.alert_data)
-    state.analysis_result = analysis_result
-    state.current_step = "analyzed"
-    
-    print(f"✅ Hoàn thành chẩn đoán. Nguyên nhân: {analysis_result.get('root_cause', 'Không xác định')}")
-    return state
+def supervisor_agent():
+    model = gemini_client()
+    run_analyst, run_planner, run_executor = create_analyst_agent(), create_planner_agent(), create_executor_agent()
+    workflow = create_supervisor(
+        [run_analyst, run_planner, run_executor],
+        model=model,
+        prompt=SUPERVISOR_SYSTEM_PROMPT,
+        add_handoff_back_messages=True,
+        output_mode="full_history",
+    ).compile()
+    return workflow
 
-def create_remediation_plan(state: WorkflowState) -> WorkflowState:
-    """Bước 2: Lên kế hoạch khắc phục bằng Planner agent"""
-    print("📋 Đang lập kế hoạch khắc phục...")
-    
-    plan_result = run_planner(state.analysis_result, state.alert_data)
-    state.plan_suggestions = plan_result
-    state.current_step = "planned"
-    
-    print(f"✅ Hoàn thành lập kế hoạch: {plan_result.get('plan_name', 'Không có tên')}")
-    return state
+# Compile and run
+# app = workflow.compile()
+# result = app.invoke({
+#     "messages": [
+#         {
+#             "role": "user",
+#             "content": "what's the combined headcount of the FAANG companies in 2024?"
+#         }
+#     ]
+# })
 
-def await_approval(state: WorkflowState) -> WorkflowState:
-    """Bước 3: Chờ phê duyệt từ kỹ sư"""
-    print("⏳ Chờ phê duyệt kế hoạch từ kỹ sư...")
+# def generate_final_report(state: WorkflowState) -> WorkflowState:
+#     """Bước 5: Tạo báo cáo cuối cùng"""
+#     print("📄 Đang tạo báo cáo cuối cùng...")
     
-    # Tạo báo cáo để trình bày cho kỹ sư
-    summary = run_orchestrator_summary(
-        alert_data=state.alert_data,
-        analysis_result=state.analysis_result,
-        plan_suggestions=state.plan_suggestions,
-        current_step="awaiting_approval"
-    )
+#     final_report = create_incident_report(
+#         alert_data=state.alert_data,
+#         analysis_result=state.analysis_result,
+#         plan_suggestions=state.plan_suggestions,
+#         execution_result=state.execution_result
+#     )
+#     state.final_report = final_report
+#     state.current_step = "completed"
     
-    print("📋 TRÌNH BÁY KẾ HOẠCH CHO KỸ SƯ:")
-    print("=" * 50)
-    print(summary)
-    print("=" * 50)
-    
-    # Trong thực tế, đây sẽ là input từ user interface
-    # Hiện tại mô phỏng auto-approve cho demo
-    response = input("\n🤔 Bạn có muốn phê duyệt kế hoạch này? (y/n): ")
-    state.user_approval = response.lower() in ['y', 'yes', 'đồng ý']
-    
-    if state.user_approval:
-        state.current_step = "approved"
-        print("✅ Kế hoạch đã được phê duyệt!")
-    else:
-        state.current_step = "rejected"
-        print("❌ Kế hoạch bị từ chối!")
-    
-    return state
+#     print("✅ Hoàn thành báo cáo sự cố!")
+#     return state
 
-def execute_plan(state: WorkflowState) -> WorkflowState:
-    """Bước 4: Thực thi kế hoạch bằng Executor agent"""
-    print("⚙️ Bắt đầu thực thi kế hoạch...")
-    
-    execution_result = run_executor(
-        state.plan_suggestions, 
-        state.alert_data, 
-        state.analysis_result
-    )
-    state.execution_result = execution_result
-    state.current_step = "executed"
-    
-    print(f"✅ Hoàn thành thực thi. Trạng thái: {execution_result.get('status', 'Không xác định')}")
-    return state
+# def should_execute(state: WorkflowState) -> Literal["execute", "report"]:
+#     """Điều kiện để quyết định có thực thi hay không"""
+#     if state.user_approval and state.current_step == "approved":
+#         return "execute"
+#     else:
+#         return "report"
 
-def generate_final_report(state: WorkflowState) -> WorkflowState:
-    """Bước 5: Tạo báo cáo cuối cùng"""
-    print("📄 Đang tạo báo cáo cuối cùng...")
+# def create_response_workflow() -> CompiledStateGraph:
+#     """Tạo workflow chính cho hệ thống phản ứng"""
     
-    final_report = create_incident_report(
-        alert_data=state.alert_data,
-        analysis_result=state.analysis_result,
-        plan_suggestions=state.plan_suggestions,
-        execution_result=state.execution_result
-    )
-    state.final_report = final_report
-    state.current_step = "completed"
+#     # Tạo workflow graph
+#     workflow = StateGraph(WorkflowState)
     
-    print("✅ Hoàn thành báo cáo sự cố!")
-    return state
+#     # Thêm các nodes
+#     workflow.add_node("analyze", analyze_incident)
+#     workflow.add_node("plan", create_remediation_plan)
+#     workflow.add_node("approval", await_approval)
+#     workflow.add_node("execute", execute_plan)
+#     workflow.add_node("report", generate_final_report)
+    
+#     # Thiết lập edges
+#     workflow.add_edge(START, "analyze")
+#     workflow.add_edge("analyze", "plan")
+#     workflow.add_edge("plan", "approval")
+    
+#     # Conditional edge dựa trên approval
+#     workflow.add_conditional_edges(
+#         "approval",
+#         should_execute,
+#         {
+#             "execute": "execute",
+#             "report": "report"
+#         }
+#     )
+    
+#     workflow.add_edge("execute", "report")
+#     workflow.add_edge("report", END)
+    
+#     # Compile workflow
+#     compiled_workflow = workflow.compile()
+#     return compiled_workflow
 
-def should_execute(state: WorkflowState) -> Literal["execute", "report"]:
-    """Điều kiện để quyết định có thực thi hay không"""
-    if state.user_approval and state.current_step == "approved":
-        return "execute"
-    else:
-        return "report"
-
-def create_response_workflow() -> CompiledStateGraph:
-    """Tạo workflow chính cho hệ thống phản ứng"""
+# def run_incident_response(alert_data: dict) -> dict:
+#     """Chạy toàn bộ workflow phản ứng sự cố"""
+#     print("\n🚨 BẮT ĐẦU QUÁ TRÌNH PHẢN ỨNG SỰ CỐ")
+#     print("=" * 60)
     
-    # Tạo workflow graph
-    workflow = StateGraph(WorkflowState)
+#     # Tạo workflow
+#     workflow = create_response_workflow()
     
-    # Thêm các nodes
-    workflow.add_node("analyze", analyze_incident)
-    workflow.add_node("plan", create_remediation_plan)
-    workflow.add_node("approval", await_approval)
-    workflow.add_node("execute", execute_plan)
-    workflow.add_node("report", generate_final_report)
+#     # Khởi tạo state
+#     initial_state = WorkflowState()
+#     initial_state.alert_data = alert_data
     
-    # Thiết lập edges
-    workflow.add_edge(START, "analyze")
-    workflow.add_edge("analyze", "plan")
-    workflow.add_edge("plan", "approval")
+#     # Chạy workflow
+#     final_state = workflow.invoke(initial_state)
     
-    # Conditional edge dựa trên approval
-    workflow.add_conditional_edges(
-        "approval",
-        should_execute,
-        {
-            "execute": "execute",
-            "report": "report"
-        }
-    )
+#     print("\n🎉 HOÀN THÀNH QUÁ TRÌNH PHẢN ỨNG")
+#     print("=" * 60)
     
-    workflow.add_edge("execute", "report")
-    workflow.add_edge("report", END)
-    
-    # Compile workflow
-    compiled_workflow = workflow.compile()
-    return compiled_workflow
-
-def run_incident_response(alert_data: dict) -> dict:
-    """Chạy toàn bộ workflow phản ứng sự cố"""
-    print("\n🚨 BẮT ĐẦU QUÁ TRÌNH PHẢN ỨNG SỰ CỐ")
-    print("=" * 60)
-    
-    # Tạo workflow
-    workflow = create_response_workflow()
-    
-    # Khởi tạo state
-    initial_state = WorkflowState()
-    initial_state.alert_data = alert_data
-    
-    # Chạy workflow
-    final_state = workflow.invoke(initial_state)
-    
-    print("\n🎉 HOÀN THÀNH QUÁ TRÌNH PHẢN ỨNG")
-    print("=" * 60)
-    
-    return final_state.final_report
+#     return final_state.final_report
