@@ -1,12 +1,12 @@
 # Hệ thống Multi-Agent: Đội Phản ứng Nhanh Kỹ thuật số
 
-Hệ thống này hoạt động như một đội y tế cấp cứu cho các sự cố Kubernetes. Khi có "cuộc gọi khẩn cấp" (alert), 
+Hệ thống này hoạt động như một đội y tế cấp cứu cho các sự cố Kubernetes. Khi có "cuộc gọi khẩn cấp" (alert),
 cả đội sẽ phối hợp nhịp nhàng để giải quyết.
 
 ## 🏥 Các Chuyên gia trong Đội
 
 1. **🩺 Analyst (Chuyên gia Chẩn đoán):**
-   - Thực hiện "khám bệnh": dùng các công cụ để xem log và chỉ số hệ thống 
+   - Thực hiện "khám bệnh": dùng các công cụ để xem log và chỉ số hệ thống
    - Tìm ra chính xác **nguyên nhân gốc rễ**
    - Trả lời câu hỏi: **"Tại sao?"**
 
@@ -88,7 +88,7 @@ src/
 ## 🛠️ Công nghệ sử dụng
 
 - **LangGraph:** Tạo workflow và state management
-- **LangChain:** ReAct agents và output parsing  
+- **LangChain:** ReAct agents và output parsing
 - **Google Generative AI:** LLM chính
 - **Tavily Search:** Tìm kiếm thông tin
 - **Pydantic:** Structured outputs
@@ -117,7 +117,7 @@ Hệ thống hỗ trợ các loại alert Kubernetes phổ biến:
 
 ### Custom Prompts
 Chỉnh sửa prompts trong `src/prompts/` để phù hợp với use case cụ thể.
-   * Sau khi "bác sĩ" (kỹ sư) đã phê duyệt phác đồ, Robot này sẽ tiến hành "ca mổ" một cách **chính xác và an toàn tuyệt đối**. 
+   * Sau khi "bác sĩ" (kỹ sư) đã phê duyệt phác đồ, Robot này sẽ tiến hành "ca mổ" một cách **chính xác và an toàn tuyệt đối**.
    Nó chỉ làm theo lệnh, không tự ý hành động.
 
 ## Quy trình làm việc của Đội

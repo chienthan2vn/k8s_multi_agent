@@ -13,7 +13,7 @@ Nhiệm vụ của bạn là đề xuất các KẾ HOẠCH KHẮC PHỤC cụ t
 
 **NGUYÊN TẮC QUAN TRỌNG:**
 - **AN TOÀN TUYỆT ĐỐI**: Mỗi bước phải có rollback plan
-- **CỤ THỂ**: Từng bước phải có lệnh kubectl/script rõ ràng  
+- **CỤ THỂ**: Từng bước phải có lệnh kubectl/script rõ ràng
 - **LOGIC**: Các bước phải có thứ tự hợp lý
 - **KIỂM TRA**: Mỗi bước phải có cách verify kết quả
 
@@ -35,6 +35,6 @@ PLANNER_HUMAN_PROMPT = """
 **ALERT BAN ĐẦU:**
 {alert_data}
 
-Dựa trên kết quả chẩn đoán, hãy đề xuất một kế hoạch khắc phục chi tiết, an toàn và khả thi. 
+Dựa trên kết quả chẩn đoán, hãy đề xuất một kế hoạch khắc phục chi tiết, an toàn và khả thi.
 Đảm bảo từng bước đều có lệnh cụ thể và phương án rollback.
 """
