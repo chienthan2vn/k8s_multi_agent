@@ -1,5 +1,5 @@
 """
-Tools cho Executor Agent - Các công cụ thực thi và mô phỏng
+Tools for Executor Agent - Execution and simulation tools
 """
 from langchain.tools import tool
 import json
@@ -8,10 +8,13 @@ from datetime import datetime
 
 @tool
 def simulate_kubectl_command(command: str) -> str:
-    """Mô phỏng thực thi lệnh kubectl (simulation mode)"""
+    """
+    Simulate kubectl command execution (simulation mode)
+    command: The kubectl command to simulate
+    """
     timestamp = datetime.now().isoformat()
     
-    # Các kết quả mô phỏng dựa trên loại lệnh
+    # Simulation results based on command type
     simulation_results = {
         "get pods": {
             "status": "success",
@@ -70,7 +73,7 @@ def simulate_kubectl_command(command: str) -> str:
         }
     }
     
-    # Tìm matching command pattern
+    # Find matching command pattern
     result = None
     for pattern, sim_result in simulation_results.items():
         if pattern in command.lower():
@@ -95,10 +98,14 @@ def simulate_kubectl_command(command: str) -> str:
 
 @tool
 def verify_system_state(check_description: str, expected_state: str = "") -> str:
-    """Kiểm tra trạng thái hệ thống sau khi thực hiện action"""
+    """
+    Check system state after executing action
+    check_description: Description of what to check
+    expected_state: Expected state after the action (optional)
+    """
     timestamp = datetime.now().isoformat()
     
-    # Mô phỏng verification checks
+    # Simulation of verification checks
     verification_results = {
         "pod status": {
             "status": "healthy",
@@ -127,7 +134,7 @@ def verify_system_state(check_description: str, expected_state: str = "") -> str
         }
     }
     
-    # Tìm matching verification
+    # Find matching verification
     result = None
     for check_type, verify_result in verification_results.items():
         if check_type in check_description.lower():
@@ -153,10 +160,14 @@ def verify_system_state(check_description: str, expected_state: str = "") -> str
 
 @tool
 def rollback_action(rollback_command: str, reason: str) -> str:
-    """Thực hiện rollback action nếu có lỗi"""
+    """
+    Execute rollback action if there's an error
+    rollback_command: Command to execute for rollback
+    reason: Reason for performing the rollback
+    """
     timestamp = datetime.now().isoformat()
     
-    # Mô phỏng rollback operations
+    # Simulation of rollback operations
     rollback_results = {
         "scale": {
             "status": "success",
@@ -185,7 +196,7 @@ def rollback_action(rollback_command: str, reason: str) -> str:
         }
     }
     
-    # Tìm matching rollback
+    # Find matching rollback
     result = None
     for rollback_type, rollback_result in rollback_results.items():
         if rollback_type in rollback_command.lower():
@@ -210,12 +221,24 @@ def rollback_action(rollback_command: str, reason: str) -> str:
     return json.dumps(rollback_log, indent=2)
 
 @tool
-def log_execution_step(step_number: int, action: str, status: str, details: str = "") -> str:
-    """Ghi log cho mỗi bước thực thi"""
+def log_execution_step(step_number: str, action: str, status: str, details: str = "") -> str:
+    """
+    Log each execution step
+    step_number: Step number in the execution plan
+    action: Action being performed
+    status: Status of the action (success, failed, in_progress)
+    details: Additional details about the step (optional)
+    """
     timestamp = datetime.now().isoformat()
     
+    # Convert step_number to int if it's a string
+    try:
+        step_num = int(step_number)
+    except:
+        step_num = 0
+    
     log_entry = {
-        "step_number": step_number,
+        "step_number": step_num,
         "action": action,
         "status": status,
         "details": details,
@@ -226,15 +249,26 @@ def log_execution_step(step_number: int, action: str, status: str, details: str 
     return json.dumps(log_entry, indent=2)
 
 @tool
-def validate_prerequisites(prerequisites: list) -> str:
-    """Kiểm tra các điều kiện tiên quyết trước khi thực thi"""
+def validate_prerequisites(prerequisites: str) -> str:
+    """
+    Check prerequisites before execution
+    prerequisites: List of prerequisites as JSON string or comma-separated text
+    """
     timestamp = datetime.now().isoformat()
+    
+    # Parse prerequisites if it's a JSON string, otherwise split by comma
+    try:
+        prereq_list = json.loads(prerequisites) if prerequisites.startswith('[') else prerequisites.split(',')
+        prereq_list = [prereq.strip() for prereq in prereq_list]
+    except:
+        prereq_list = prerequisites.split(',')
+        prereq_list = [prereq.strip() for prereq in prereq_list]
     
     validation_results = []
     all_valid = True
     
-    for prerequisite in prerequisites:
-        # Mô phỏng validation
+    for prerequisite in prereq_list:
+        # Simulate validation
         if "cluster access" in prerequisite.lower():
             validation_results.append({
                 "prerequisite": prerequisite,
@@ -261,7 +295,7 @@ def validate_prerequisites(prerequisites: list) -> str:
             })
     
     validation_log = {
-        "prerequisites_checked": len(prerequisites),
+        "prerequisites_checked": len(prereq_list),
         "all_valid": all_valid,
         "timestamp": timestamp,
         "validation_results": validation_results,
@@ -271,7 +305,7 @@ def validate_prerequisites(prerequisites: list) -> str:
     return json.dumps(validation_log, indent=2)
 
 def get_executor_tools():
-    """Trả về danh sách tools cho Executor agent"""
+    """Return list of tools for Executor agent"""
     return [
         simulate_kubectl_command,
         verify_system_state,

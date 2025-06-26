@@ -26,9 +26,7 @@ def create_analyst_agent():
     tools = get_analysis_tools()
     
     # Tạo system prompt với format instructions
-    system_prompt = ANALYST_SYSTEM_PROMPT.format(
-        format_instructions=get_analysis_format_instructions()
-    )
+    system_prompt = ANALYST_SYSTEM_PROMPT
     
     # Tạo agent với create_react_agent
     agent = create_react_agent(
@@ -36,6 +34,7 @@ def create_analyst_agent():
         tools,
         prompt=system_prompt,
         name="analyst_agent",
+        # debug=True,
     )
     
     return agent

@@ -11,7 +11,7 @@ from langchain_core.messages import SystemMessage
 
 from src.utils.parsers import get_execution_format_instructions, execution_parser
 from src.utils.executor_tools import get_executor_tools
-from src.prompts.prompt_executor import EXECUTOR_SYSTEM_PROMPT, EXECUTOR_HUMAN_PROMPT
+from src.prompts.prompt_executor import EXECUTOR_SYSTEM_PROMPT
 
 def create_executor_agent():
     """Tạo Executor agent với ReAct pattern"""
@@ -27,9 +27,7 @@ def create_executor_agent():
     tools = get_executor_tools()
     
     # Tạo system prompt với format instructions
-    system_prompt = EXECUTOR_SYSTEM_PROMPT.format(
-        format_instructions=get_execution_format_instructions()
-    )
+    system_prompt = EXECUTOR_SYSTEM_PROMPT
     
     # Tạo agent với create_react_agent
     agent = create_react_agent(
@@ -37,6 +35,7 @@ def create_executor_agent():
         tools,
         prompt=system_prompt,
         name="executor_agent",
+        # debug=True,
     )
     
     return agent

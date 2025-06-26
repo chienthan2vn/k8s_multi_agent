@@ -27,9 +27,7 @@ def create_planner_agent():
     tools = get_planner_tools() + [search_k8s_docs, kubectl_help]
     
     # Tạo system prompt với format instructions
-    system_prompt = PLANNER_SYSTEM_PROMPT.format(
-        format_instructions=get_plan_format_instructions()
-    )
+    system_prompt = PLANNER_SYSTEM_PROMPT
     
     # Tạo agent với create_react_agent
     agent = create_react_agent(
@@ -37,6 +35,7 @@ def create_planner_agent():
         tools,
         prompt=system_prompt,
         name="planner_agent",
+        # debu_mode=True,
     )
     
     return agent

@@ -1,12 +1,15 @@
 """
-Tools cho Planner Agent - Các công cụ lập kế hoạch khắc phục
+Tools for Planner Agent - Planning and remediation tools
 """
 from langchain.tools import tool
 import json
 
 @tool
 def get_kubectl_commands(resource_type: str) -> str:
-    """Lấy danh sách lệnh kubectl phổ biến cho resource type"""
+    """
+    Get list of common kubectl commands for resource type
+    resource_type: Type of Kubernetes resource (pod, deployment, service, node, namespace, configmap, secret)
+    """
     commands = {
         "pod": [
             "kubectl get pods",
@@ -57,8 +60,19 @@ def get_kubectl_commands(resource_type: str) -> str:
     return json.dumps(commands.get(resource_type, ["Resource type not found"]), indent=2)
 
 @tool
-def estimate_risk_level(action_list: list) -> str:
-    """Đánh giá mức độ rủi ro của các hành động"""
+def estimate_risk_level(action_list: str) -> str:
+    """
+    Evaluate risk level of actions
+    action_list: List of actions as JSON string or comma-separated text
+    """
+    # Parse action_list if it's a JSON string, otherwise split by comma
+    try:
+        actions = json.loads(action_list) if action_list.startswith('[') else action_list.split(',')
+        actions = [action.strip() for action in actions]
+    except:
+        actions = action_list.split(',')
+        actions = [action.strip() for action in actions]
+    
     high_risk_actions = ["delete", "drain", "cordon", "scale down", "restart", "undo", "remove"]
     medium_risk_actions = ["scale up", "patch", "update", "edit", "restart deployment"]
     low_risk_actions = ["get", "describe", "logs", "top", "status"]
@@ -66,7 +80,7 @@ def estimate_risk_level(action_list: list) -> str:
     risk_score = 0
     risk_details = []
     
-    for action in action_list:
+    for action in actions:
         action_lower = action.lower()
         if any(hr in action_lower for hr in high_risk_actions):
             risk_score += 3
@@ -96,7 +110,11 @@ def estimate_risk_level(action_list: list) -> str:
 
 @tool
 def get_rollback_commands(resource_type: str, action: str) -> str:
-    """Lấy lệnh rollback tương ứng với action"""
+    """
+    Get rollback command corresponding to the action
+    resource_type: Type of Kubernetes resource (pod, deployment, service, node)
+    action: Action that needs rollback (delete, restart, scale, patch, edit, cordon, drain)
+    """
     rollback_mapping = {
         "pod": {
             "delete": "kubectl apply -f <backup-yaml>",
@@ -123,8 +141,19 @@ def get_rollback_commands(resource_type: str, action: str) -> str:
     return json.dumps({"rollback_command": result}, indent=2)
 
 @tool
-def estimate_execution_time(steps: list) -> str:
-    """Ước tính thời gian thực hiện kế hoạch"""
+def estimate_execution_time(steps: str) -> str:
+    """
+    Estimate execution time for the plan
+    steps: List of execution steps as JSON string or comma-separated text
+    """
+    # Parse steps if it's a JSON string, otherwise split by comma
+    try:
+        step_list = json.loads(steps) if steps.startswith('[') else steps.split(',')
+        step_list = [step.strip() for step in step_list]
+    except:
+        step_list = steps.split(',')
+        step_list = [step.strip() for step in step_list]
+    
     time_mapping = {
         "get": 1,
         "describe": 2,
@@ -141,7 +170,7 @@ def estimate_execution_time(steps: list) -> str:
     total_time = 0
     step_details = []
     
-    for i, step in enumerate(steps, 1):
+    for i, step in enumerate(step_list, 1):
         step_lower = step.lower()
         step_time = 10  # default time
         
@@ -163,7 +192,7 @@ def estimate_execution_time(steps: list) -> str:
     }, indent=2)
 
 def get_planner_tools():
-    """Trả về danh sách tools cho Planner agent"""
+    """Return list of tools for Planner agent"""
     return [
         get_kubectl_commands,
         estimate_risk_level,
